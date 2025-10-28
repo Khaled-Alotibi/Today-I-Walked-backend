@@ -17,3 +17,17 @@ from .serializers import ProfileSerializer, PostSerializer, LikeSerializer
 class Home(APIView):
     def get(self, request):
         return Response({"message": "api"})
+
+
+class ProfileIndex(APIView):
+    def get(self, request):
+        queryset = Profile.objects.all()
+        serializer = ProfileSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+
+class ProfileDetail(APIView):
+    def get(self, request, user_id):
+        profile = get_object_or_404(Profile, id=user_id)
+        serializer = ProfileSerializer(profile)
+        return Response(serializer.data)

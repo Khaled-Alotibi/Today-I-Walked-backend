@@ -199,8 +199,13 @@ class LikePost(APIView):
 
 class LikeIndex(APIView):
     def get(self, request, post_id):
-        post = get_object_or_404(Post, id=post_id)
-        # related_name="likes"
-        likes = post.likes.all()
-        serializer = LikeSerializer(likes, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        try:
+            post = get_object_or_404(Post, id=post_id)
+            # related_name="likes"
+            likes = post.likes.all()
+            serializer = LikeSerializer(likes, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as err:
+            return Response(
+                {"error": str(err)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

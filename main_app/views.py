@@ -60,25 +60,34 @@ class ProfileDetail(APIView):
             )
 
     def delete(self, request, user_id):
-        profile = get_object_or_404(Profile, user__id=user_id)
-
-        if request.user != profile.user:
+        try:
+            profile = get_object_or_404(Profile, user__id=user_id)
+            if request.user != profile.user:
+                return Response(
+                    {"error": "you only can delete your account."},
+                    status=status.HTTP_401_UNAUTHORIZED,
+                )
+            profile.user.delete()
             return Response(
-                {"error": "you only can delete your account."},
-                status=status.HTTP_401_UNAUTHORIZED,
+                {"detail": "User and Profile has been deleted successfully"},
+                status=status.HTTP_202_ACCEPTED,
             )
-        profile.user.delete()
-        return Response(
-            {"detail": "User and Profile has been deleted successfully"},
-            status=status.HTTP_202_ACCEPTED,
-        )
+        except Exception as err:
+            return Response(
+                {"error": str(err)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class PostIndex(APIView):
     def get(self, request):
-        queryset = Post.objects.all()
-        serializer = PostSerializer(queryset, many=True)
-        return Response(serializer.data)
+        try:
+            queryset = Post.objects.all()
+            serializer = PostSerializer(queryset, many=True)
+            return Response(serializer.data)
+        except Exception as err:
+            return Response(
+                {"error": str(err)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     def post(self, request):
         try:
@@ -91,3 +100,32 @@ class PostIndex(APIView):
             return Response(
                 {"error": str(err)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+    class PostDetail(APIView):
+        def get(self, request, post_id):
+            try:
+                post = get_object_or_404(Post, id=post_id)
+                serializer = PostSerializer(post)
+                return Response(serializer.data)
+            except Exception as err:
+                return Response(
+                    {"error": str(err)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+
+        def patch(self, request, post_id):
+            try:
+                post = get_object_or_404(Post, id=post_id)
+                if request.user != post.user:
+                    return Response(
+                        {"error": "you only can delete your account."},
+                        status=status.HTTP_401_UNAUTHORIZED,
+                    )
+                serializer = PostSerializer(post, data=request.data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response(serializer.data)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as err:
+                return Response(
+                    {"error": str(err)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )

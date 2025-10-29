@@ -1,4 +1,3 @@
-from typing_extensions import ReadOnly
 from rest_framework import serializers
 from .models import Profile, Post, Like
 

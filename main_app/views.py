@@ -15,6 +15,10 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 
 # copy and pasted the imports from cat collector :)
+
+User = get_user_model()
+
+
 class Home(APIView):
     def get(self, request):
         return Response({"message": "api"})
@@ -167,10 +171,11 @@ class LikePost(APIView):
         try:
             post = get_object_or_404(Post, id=post_id)
             like, created = Like.objects.get_or_create(user=request.user, post=post)
-            return Response(
-                {"detail": "You allready liked this post."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            if not created:
+                return Response(
+                    {"detail": "You allready liked this post."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
             serializer = LikeSerializer(like)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except Exception as err:
@@ -209,3 +214,30 @@ class LikeIndex(APIView):
             return Response(
                 {"error": str(err)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+class SignupUserView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        username = request.data.get("username")
+        email = request.data.get("email")
+        password = request.data.get("password")
+        if not username or not password or not email:
+            return Response(
+                {"error": "Plesase provide a username, password, and email."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if User.objects.filter(username=username).exists():
+            return Response(
+                {"error": "this user already exists."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        user = User.objects.create_user(
+            username=username, email=email, password=password
+        )
+
+        return Response(
+            {"id": user.id, "username": user.username, "email": user.email},
+            status=status.HTTP_201_CREATED,
+        )

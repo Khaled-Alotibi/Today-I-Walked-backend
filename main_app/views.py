@@ -62,11 +62,11 @@ class ProfileDetail(APIView):
     def delete(self, request, user_id):
         profile = get_object_or_404(Profile, user__id=user_id)
 
-        # if request.user != profile.user:
-        #     return Response(
-        #         {"error": "you only can delete your account."},
-        #         status=status.HTTP_401_UNAUTHORIZED,
-        #     )
+        if request.user != profile.user:
+            return Response(
+                {"error": "you only can delete your account."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
         profile.user.delete()
         return Response(
             {"detail": "User and Profile has been deleted successfully"},
@@ -79,3 +79,15 @@ class PostIndex(APIView):
         queryset = Post.objects.all()
         serializer = PostSerializer(queryset, many=True)
         return Response(serializer.data)
+
+    def post(self, request):
+        try:
+            serializer = PostSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save(user=request.user)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as err:
+            return Response(
+                {"error": str(err)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

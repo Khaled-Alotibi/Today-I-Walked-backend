@@ -129,7 +129,7 @@ class PostDetail(APIView):
             post = get_object_or_404(Post, id=post_id)
             if request.user != post.user:
                 return Response(
-                    {"error": "you only can delete your account."},
+                    {"error": "you only can only edit your own posts."},
                     status=status.HTTP_401_UNAUTHORIZED,
                 )
             serializer = PostSerializer(post, data=request.data, partial=True)
@@ -155,6 +155,24 @@ class PostDetail(APIView):
                 {"detail": "Post has ben deleted seccessfully."},
                 status=status.HTTP_202_ACCEPTED,
             )
+        except Exception as err:
+            return Response(
+                {"error": str(err)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+# https://stackoverflow.com/questions/55434253/how-to-create-a-like-functionality-in-django-for-a-blog
+class LikePost(APIView):
+    def post(self, request, post_id):
+        try:
+            post = get_object_or_404(Post, id=post_id)
+            like, created = Like.objects.get_or_create(user=request.user, post=post)
+            return Response(
+                {"detail": "You allready liked this post."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+            serializer = LikeSerializer(like)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         except Exception as err:
             return Response(
                 {"error": str(err)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR

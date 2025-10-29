@@ -177,3 +177,30 @@ class LikePost(APIView):
             return Response(
                 {"error": str(err)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+    def delete(self, request, post_id):
+        try:
+            post = get_object_or_404(Post, id=post_id)
+            like = Like.objects.filter(user=request.user, post=post).get()
+            if not like:
+                return Response(
+                    {"detail": "You have not liked this post."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            like.delete()
+            return Response(
+                {"detail": "Like removed."}, status=status.HTTP_202_ACCEPTED
+            )
+        except Exception as err:
+            return Response(
+                {"error": str(err)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class LikeIndex(APIView):
+    def get(self, request, post_id):
+        post = get_object_or_404(Post, id=post_id)
+        # related_name="likes"
+        likes = post.likes.all()
+        serializer = LikeSerializer(likes, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

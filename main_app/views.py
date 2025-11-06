@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from django.db.models import Sum
 from rest_framework.permissions import (
     AllowAny,
     IsAuthenticated,
@@ -20,11 +21,15 @@ User = get_user_model()
 
 
 class Home(APIView):
+    permission_classes = [AllowAny]
+
     def get(self, request):
         return Response({"message": "api"})
 
 
 class ProfileIndex(APIView):
+    permission_classes = [AllowAny]
+
     def get(self, request):
         try:
             queryset = Profile.objects.all()
@@ -50,6 +55,8 @@ class ProfileIndex(APIView):
 
 
 class ProfileDetail(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, user_id):
         try:
             profile = get_object_or_404(Profile, user__id=user_id)
@@ -64,6 +71,8 @@ class ProfileDetail(APIView):
         try:
             profile = get_object_or_404(Profile, user__id=user_id)
             serializer = ProfileSerializer(profile, data=request.data, partial=True)
+
+            print(request.data)
             if serializer.is_valid():
                 serializer.save()
                 print(serializer.data)
@@ -94,10 +103,14 @@ class ProfileDetail(APIView):
 
 
 class PostIndex(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         try:
             queryset = Post.objects.all()
-            serializer = PostSerializer(queryset, many=True)
+            serializer = PostSerializer(
+                queryset, many=True, context={"request": request}
+            )
             return Response(serializer.data)
         except Exception as err:
             return Response(
@@ -108,7 +121,7 @@ class PostIndex(APIView):
         try:
             serializer = PostSerializer(data=request.data)
             if serializer.is_valid():
-                serializer.save(user=request.user)
+                serializer.save(author=request.user)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as err:
@@ -117,7 +130,24 @@ class PostIndex(APIView):
             )
 
 
+class UserPosts(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, user_id):
+        try:
+            user = get_object_or_404(User, id=user_id)
+            posts = Post.objects.filter(author=user).order_by("-created_at")
+            serializer = PostSerializer(posts, many=True, context={"request": request})
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as err:
+            return Response(
+                {"error": str(err)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
 class PostDetail(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, post_id):
         try:
             post = get_object_or_404(Post, id=post_id)
@@ -131,7 +161,7 @@ class PostDetail(APIView):
     def patch(self, request, post_id):
         try:
             post = get_object_or_404(Post, id=post_id)
-            if request.user != post.user:
+            if request.user != post.author:
                 return Response(
                     {"error": "you only can only edit your own posts."},
                     status=status.HTTP_401_UNAUTHORIZED,
@@ -149,7 +179,7 @@ class PostDetail(APIView):
     def delete(self, request, post_id):
         try:
             post = get_object_or_404(Post, id=post_id)
-            if request.user != post.user:
+            if request.user != post.author:
                 return Response(
                     {"error": "you only can delete your own posts."},
                     status=status.HTTP_401_UNAUTHORIZED,
@@ -167,6 +197,8 @@ class PostDetail(APIView):
 
 # https://stackoverflow.com/questions/55434253/how-to-create-a-like-functionality-in-django-for-a-blog
 class LikePost(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request, post_id):
         try:
             post = get_object_or_404(Post, id=post_id)
@@ -186,7 +218,7 @@ class LikePost(APIView):
     def delete(self, request, post_id):
         try:
             post = get_object_or_404(Post, id=post_id)
-            like = Like.objects.filter(user=request.user, post=post).get()
+            like = Like.objects.filter(user=request.user, post=post).first()
             if not like:
                 return Response(
                     {"detail": "You have not liked this post."},
@@ -203,6 +235,8 @@ class LikePost(APIView):
 
 
 class LikeIndex(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, post_id):
         try:
             post = get_object_or_404(Post, id=post_id)
@@ -236,6 +270,7 @@ class SignupUserView(APIView):
         user = User.objects.create_user(
             username=username, email=email, password=password
         )
+        Profile.objects.create(user=user)
 
         return Response(
             {"id": user.id, "username": user.username, "email": user.email},

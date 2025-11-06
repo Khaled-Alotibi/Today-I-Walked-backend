@@ -8,6 +8,7 @@ from .views import (
     ProfileDetail,
     ProfileIndex,
     SignupUserView,
+    UserPosts,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
@@ -16,7 +17,8 @@ urlpatterns = [
     path("profile/<int:user_id>/", ProfileDetail.as_view(), name="profile_detail"),
     path("profiles/", ProfileIndex.as_view(), name="profile_index"),
     path("posts/", PostIndex.as_view(), name="posts"),
-    path("posts/<int:post_id>", PostDetail.as_view(), name="posts"),
+    path("posts/<int:post_id>/", PostDetail.as_view(), name="posts"),
+    path("posts/<int:user_id>/posts/", UserPosts.as_view(), name="user_posts"),
     path("posts/<int:post_id>/like/", LikePost.as_view(), name="like"),
     path("posts/<int:post_id>/likes/", LikeIndex.as_view(), name="likes"),
     path("login/", TokenObtainPairView.as_view(), name="login"),

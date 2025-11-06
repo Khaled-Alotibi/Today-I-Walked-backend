@@ -1,0 +1,46 @@
+services:
+  tiw_db:
+    image: postgres
+    container_name: tiw_db
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    environment:
+      POSTGRES_USER: khaled.algethime # Need to be the same as in your .env file
+      POSTGRES_PASSWORD: 159753 # .env
+      POSTGRES_DB: tiw_db # .env
+
+  frontend:
+    build:
+      context: ../Today-i-walked-frontend/
+      dockerfile: Dockerfile
+    container_name: "tiw_frontend"
+    ports:
+      - "5173:5173" # maps port 5173 on the container to 5173 on the host machine
+    volumes:
+      - ../Today-i-walked-frontend:/app # basically don't delete these between starting and stopping the container
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - tiw_db
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: backend_api
+    command: >
+      bash -c "
+              python manage.py makemigrations &&
+              python manage.py migrate &&
+              python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ./:/usr/src/backend/
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./.env
+    depends_on:
+      - tiw_db
+volumes:
+  postgres_data:

@@ -20,7 +20,6 @@ urlpatterns = [
     path("posts/<int:post_id>/", PostDetail.as_view(), name="posts"),
     path("posts/<int:user_id>/posts/", UserPosts.as_view(), name="user_posts"),
     path("posts/<int:post_id>/like/", LikePost.as_view(), name="like"),
-    path("posts/<int:post_id>/likes/", LikeIndex.as_view(), name="likes"),
     path("login/", TokenObtainPairView.as_view(), name="login"),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("signup/", SignupUserView.as_view(), name="signup"),

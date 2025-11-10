@@ -205,7 +205,7 @@ class LikePost(APIView):
             like, created = Like.objects.get_or_create(user=request.user, post=post)
             if not created:
                 return Response(
-                    {"detail": "You allready liked this post."},
+                    {"detail": "You already liked this post."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             serializer = LikeSerializer(like)

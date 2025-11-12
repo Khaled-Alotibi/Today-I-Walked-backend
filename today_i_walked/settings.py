@@ -62,7 +62,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-CORS_ALLOWED_ORIGINS = ["http://localhost:5173"]
+CORS_ALLOWED_ORIGINS = ["https://today-i-walked-frontend.vercel.app"]
 ROOT_URLCONF = "today_i_walked.urls"
 
 TEMPLATES = [

@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+import environ
+
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -79,15 +81,17 @@ WSGI_APPLICATION = "today_i_walked.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
+env = environ.Env()
+environ.Env.read_env()
 DATABASES = {
-    "default": {
-        "ENGINE": os.environ.get("SQL_ENGINE", "django.db.backends.postgresql"),
-        "NAME": os.environ.get("SQL_DATABASE", "tiw_db"),
-        "USER": os.environ.get("SQL_USER", "khaled.algethime"),
-        "PASSWORD": os.environ.get("SQL_PASSWORD", "159753"),
-        "HOST": os.environ.get("SQL_HOST", "localhost"),
-        "PORT": os.environ.get("SQL_PORT", "5432"),
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': env('PGDATABASE'),
+        'USER': env('PGUSER'),
+        'PASSWORD': env('PGPASSWORD'),
+        'HOST': env('PGHOST'),
+        'PORT': env('PGPORT'),  # لازم يكون رقم، env يقراه كـ string ونحنا نقدر نحوله
+    }
     }
 }
 # Password validation

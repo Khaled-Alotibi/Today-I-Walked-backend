@@ -84,14 +84,13 @@ WSGI_APPLICATION = "today_i_walked.wsgi.application"
 env = environ.Env()
 environ.Env.read_env()
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': env('PGDATABASE'),
-        'USER': env('PGUSER'),
-        'PASSWORD': env('PGPASSWORD'),
-        'HOST': env('PGHOST'),
-        'PORT': env('PGPORT'),  # لازم يكون رقم، env يقراه كـ string ونحنا نقدر نحوله
-    }
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": env("PGDATABASE"),
+        "USER": env("PGUSER"),
+        "PASSWORD": env("PGPASSWORD"),
+        "HOST": env("PGHOST"),
+        "PORT": env("PGPORT"),
     }
 }
 # Password validation

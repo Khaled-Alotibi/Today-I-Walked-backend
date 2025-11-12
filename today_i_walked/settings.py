@@ -79,7 +79,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "today_i_walked.wsgi.application"
 
 
-# Database
+# Databassse
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 env = environ.Env()
 environ.Env.read_env()
